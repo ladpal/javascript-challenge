@@ -37,10 +37,9 @@ function selectOccupation() {
 }
 
 function confirmMove() {
-    var choice = confirm("Do you really want to leave the page?");
-        if (choice == true) {
-            window.location.href = 'http://google.com';
-        }
+    if (window.confirm("Do you really want to leave the page?")) {
+        window.location = 'http://google.com';
+    }
 }
 
 function validateForm(form) {
@@ -51,12 +50,11 @@ function validateForm(form) {
     var idx;
     var valid = true;
 
-
     for (idx = 0; idx < requiredFields.length; idx++) {
         valid &= validateRequiredField(form.elements[requiredFields[idx]]);
     }
-    valid = validateZip();
-    valid = validateAge();
+    valid &= validateZip();
+    valid &= validateAge();
     return valid;
 }
 
@@ -73,14 +71,18 @@ function validateRequiredField(field) {
     return valid;
 }
 
-function onSubmit(evt) {
-    var valid = validateForm(this);
-
-    if (!valid && evt.preventDefault) {
-        evt.preventDefault();
+function onSubmit(eventObject) {
+    try {
+        var valid = validateForm(this);
+    } catch(exception) {
+        console.log(exception);
     }
 
-    evt.returnValue = valid;
+    if (!valid && eventObject.preventDefault) {
+        eventObject.preventDefault();
+    }
+
+    eventObject.returnValue = valid;
     return valid;
 }
 
@@ -94,37 +96,39 @@ function validateZip() {
         zipField.className = 'form-control invalid';
         return false;
     }
-
 }
 
 function validateAge() {
-    var dateField = document.getElementById('birthdate');
-    var date = dateField.value;
-    var day  = date.getUTCDate();
-    var month = date.getUTCMonth();
-    var year = date.getUTCFullYear();
-    var current = new Date();
-    var currentDay = current.getUTCDate();
-    var currentMonth = current.getUTCMonth();
-    var currentYear = current.getUTCFullYear();
-    var oldEnough = true;
-    if ((currentYear - year) < 13) {
-        dateField.className = 'form-control invalid';
-        oldEnough = false;
-    } else if ((currentMonth - month) < 0) {
-        dateField.className = 'form-control invalid';
-        oldEnough = false;
-    } else if ((currentDay - day) < 0) {
-        dateField.className = 'form-control invalid';
-        oldEnough = false;
+    var dob = document.getElementById('birthdate');
+    var dobField = dob;
+    var msgElem = document.getElementById('birthdateMessage');
+    if (!dobField.value) {
+        dobField.className = 'form-control invalid';
+        return false;
+    }
+    dob = new Date(dob.value);
+    var today = new Date();
+
+    var yearsDiff = today.getFullYear() - dob.getUTCFullYear();
+    var monthsDiff = today.getMonth() - dob.getUTCMonth();
+    var daysDiff = today.getDate() - dob.getUTCDate();
+
+    if (monthsDiff < 0 || (0 == monthsDiff && daysDiff < 0)) {
+        yearsDiff--;
+    }
+
+    if (yearsDiff < 13) {
+        msgElem.innerHTML = 'Sorry, you must be over 13 years of age to sign up!';
+        dobField.className = 'form-control invalid';
+        return false;
     } else {
-        dateField.className = 'form control';
-        oldEnough = true;
+        msgElem.innerHTML = '';
+        dobField.className ='form-control';
+        return true;
     }
-    if (oldEnough = false) {
-        var message = document.getElementById('birthdateMessage');
-        message.innerHTML = 'Sorry, you must be over 13 years of age to sign up!'
-    }
-    return oldEnough;
 }
+
+
+
+
 
